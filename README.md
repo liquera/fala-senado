@@ -1,2 +1,2 @@
 # fala-senado
-análises com pronunciamentos dos senadores e senadoras
+análises dos pronunciamentos de senadores e senadoras em Python
