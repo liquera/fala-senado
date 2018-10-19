@@ -1,0 +1,65 @@
+"""
+gráfico da frequência de termos ao longo do tempo
+
+traça um gráfico que mostra a evolução do uso de determinado termo (educação no exemplo)
+no decorrer do tempo, por partido (PT, MDB e PSDB no exemplo)
+"""
+
+import string
+from nltk.corpus import stopwords
+from nltk import FreqDist
+import pandas as pd
+import matplotlib.pylab as plt
+
+pd.set_option('display.max_row', 1000)
+pd.set_option('display.max_columns', 50)
+
+df = pd.DataFrame(pd.read_csv('todos_textos.csv',
+                               dtype=str,
+                               keep_default_na=False)
+                  )
+
+df = df.drop(df.columns[[0, 1, 2, 4, 5, 6, 7, 9, 11]], axis=1)
+
+tradutor = str.maketrans({key: None for key in string.punctuation})
+
+stop_words = stopwords.words('portuguese')
+stop_words_custom = []
+stop_words.extend(stop_words_custom)
+
+#partidos = df.Partido.unique()
+partidos = ['PT', 'MDB', 'PSDB']
+
+grafdic = {}
+for partido in partidos:
+    
+    dftemp = df.loc[df['Partido'] == partido]
+    dftemp = dftemp.drop('Partido', 1)
+    dftemp = dftemp.groupby(['Data'])['Texto'].apply(' '.join).reset_index()
+  
+    dftemp['Data'] = pd.to_datetime(dftemp['Data'], format='%d/%m/%Y')
+    dftemp = dftemp.sort_values(by=['Data'])
+    
+    edudic = {}
+    for data in dftemp['Data']:
+        texto = dftemp.loc[dftemp['Data'] == data.date()]['Texto']
+        texto = texto.str.cat(sep=' ')
+        bow = texto.translate(tradutor).lower().split()
+        clean = [word for word in bow if word not in stop_words and len(word) > 1]
+        total = len(clean)
+        fd = FreqDist(clean)
+        freq = fd['educação']
+        if freq != 0:
+            prop = freq/total
+            prop = prop*100
+            edudic[data] = prop
+        else:
+            continue
+    grafdic[partido] = edudic
+
+dffinal = pd.DataFrame.from_dict(grafdic, orient='columns')
+dffinal = dffinal.resample('6M', convention='start').sum()
+     
+dffinal.plot(figsize=(20,10))
+plt.legend()
+plt.show()
