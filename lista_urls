@@ -1,0 +1,36 @@
+import csv
+import os
+from lxml import etree
+import requests as rq
+import pandas as pd
+
+# separa os códigos dos senadores a partir do arquivo criado em lista_senadores
+codigos = []
+with open(os.path.abspath('lista_senadores.csv')) as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        codigos.append(row['Codigo'])      
+csvfile.close()
+
+# monta as urls de cada senador
+urls = []
+for codigo in codigos:
+    urls.append('http://legis.senado.leg.br/dadosabertos/senador/'+codigo+'/discursos')
+    
+# busca as urls de cada pronunciamento pra cada senador
+dic = {}   
+for url in urls:
+    lista = []
+    resp = rq.get(url)
+    arq = open('temp.xml', 'wb')
+    arq.write(resp.content)
+    arq.close()
+    for _, element in etree.iterparse('temp.xml', tag='Pronunciamento'):
+        link = element.findtext('UrlTexto')
+        lista.append(link)
+        element.clear()
+    dic[url[48:-10]] = lista
+
+# coloca todas urls de pronunciamentos em um dataframe e salva em csv (2,6MB)
+df = pd.DataFrame(dict([ (k, pd.Series(v)) for k,v in dic.items() ]))
+df.to_csv('lista_urls.csv', encoding='latin-1', index=False)
