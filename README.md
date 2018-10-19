@@ -26,12 +26,25 @@ Além do Python 3.6+, é necessário um ambiente com as seguintes bibliotecas e 
 
 Para que os exemplos de análise nesse repositório funcionem, é preciso salvar todos os scripts numa mesma pasta e executá-los numa determinada ordem. 
 Os primeiros scripts vão buscar os objetos de análise na internet, são eles:
- - lista_senadores: salva um xml temporário e um csv com dados básicos de cada senador(a).
- - lista_urls: salva um csv com os links de cada pronunciamento que será acessado.
+ - lista_senadores: salva um xml temporário e um csv com dados básicos de cada senador(a). 152kb+ e 13kb+
+ - lista_urls: salva um csv com os links de cada pronunciamento que será acessado. 2,6MB+
  - todos_textos: acessa os links e salva um csv com todos os pronunciamentos de maneira organizada. 400MB+
- - bow_partido: a partir do csv maior, organiza um csv menor com os textos por partido para análise com bag of words (bow).
+ - bow_partidos: a partir do csv maior, organiza um csv menor com os textos por partido para análise com bag of words (bow). 250MB+
 
 Depois de salvar a base de dados, as análises podem ser feitas em qualquer ordem:
  - comp_freq: a partir dos bows dos partidos, compara a frequência relativa de termos nos pronunciamentos.
  - graf_termo: a partir do csv geral, faz um gráfico comparativo que mostra a evolução da frequência de determinado termo pelo tempo por partidos.
  - tfidf: a partir do csv geral, vetoriza os termos de um partido por data e pontua com TF-IDF, revelando os termos mais importantes por data do partido escolhido.
+ 
+### Notas
+
+Os scripts têm indicações de funcionamento dentro deles para maiores detalhes.
+Não sou especialista em Python, muito menos em programação, qualquer ajuda é bem-vinda.
+
+## Contribuições
+
+O projeto ainda tá engatinhando, entre em contato para discutirmos possíveis contribuições.
+
+## Licença
+
+Esse projeto está licenciado sob os termos do AGPL 3.0 - veja o arquivo LICENSE para mais detalhes.
