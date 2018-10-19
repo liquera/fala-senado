@@ -11,25 +11,31 @@ from nltk import FreqDist
 import pandas as pd
 import matplotlib.pylab as plt
 
+# ajusta configurações de exibição do dataframe
 pd.set_option('display.max_row', 1000)
 pd.set_option('display.max_columns', 50)
 
+# abre o csv geral em um dataframe e descarta colunas que não serão usadas
 df = pd.DataFrame(pd.read_csv('todos_textos.csv',
                                dtype=str,
                                keep_default_na=False)
                   )
-
 df = df.drop(df.columns[[0, 1, 2, 4, 5, 6, 7, 9, 11]], axis=1)
 
+# prepara filtros de texto
 tradutor = str.maketrans({key: None for key in string.punctuation})
 
 stop_words = stopwords.words('portuguese')
 stop_words_custom = []
 stop_words.extend(stop_words_custom)
 
+# é possível escolher entre as duas linhas abaixo, deixando o hash (#) na opção que não for utilizada
+# a primeira vai analisar todos os partidos (o gráfico fica poluído)
+# a segunda é a escolha de análise dentre os partidos
 #partidos = df.Partido.unique()
 partidos = ['PT', 'MDB', 'PSDB']
 
+# aqui prepara-se um dicionário com os partidos como chave e a frequência de certo termo como valor
 grafdic = {}
 for partido in partidos:
     
@@ -48,6 +54,8 @@ for partido in partidos:
         clean = [word for word in bow if word not in stop_words and len(word) > 1]
         total = len(clean)
         fd = FreqDist(clean)
+        
+# nesse exemplo, a análise é do termo educação, se quiser analisar outro termo, é só trocar ele na linha abaixo
         freq = fd['educação']
         if freq != 0:
             prop = freq/total
@@ -57,9 +65,12 @@ for partido in partidos:
             continue
     grafdic[partido] = edudic
 
+# o dicionário é convertido em um dataframe
+# o dataframe é organizado com a soma dos valores por semestre
 dffinal = pd.DataFrame.from_dict(grafdic, orient='columns')
 dffinal = dffinal.resample('6M', convention='start').sum()
      
+# traça o gráfico com base no dataframe final
 dffinal.plot(figsize=(20,10))
 plt.legend()
 plt.show()
