@@ -9,14 +9,17 @@ import os
 import csv
 import pandas as pd
 
+# abre o csv com todos os pronunciamentos
 db = open(os.path.abspath('todos_textos.csv'))
 df = csv.DictReader(db)
 
+# cria um dicionário com os partidos como chave e os textos como valores
 dic = {}
 for row in df:
     if row['Partido'] not in dic:
         dic[row['Partido']] = []
     dic[row['Partido']].append(row['Texto'])
     
+# coloca o dicionário num dataframe e exporta para um csv    
 df = pd.DataFrame(dict([ (k, pd.Series(v)) for k,v in dic.items() ]))
 df.to_csv('bow_partidos.csv', encoding='utf-8', index=False)
