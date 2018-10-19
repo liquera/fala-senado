@@ -1,0 +1,16 @@
+import os
+import csv
+import pandas as pd
+
+# filtra os textos e separa por partido para análise com bag of words (bow)
+db = open(os.path.abspath('todos_textos.csv'))
+df = csv.DictReader(db)
+
+dic = {}
+for row in df:
+    if row['Partido'] not in dic:
+        dic[row['Partido']] = []
+    dic[row['Partido']].append(row['Texto'])
+    
+df = pd.DataFrame(dict([ (k, pd.Series(v)) for k,v in dic.items() ]))
+df.to_csv('bow_partidos.csv', encoding='utf-8', index=False)
