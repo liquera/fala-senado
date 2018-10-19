@@ -1,0 +1,50 @@
+"""
+comparativo de frequências relativas
+
+usando os bows por partido, faz uma análise simples de frequência relativa da presença
+de determinados termos nos pronunciamentos dos senadores e senadoras.
+"""
+
+import os
+import csv
+import string
+import nltk
+from nltk.corpus import stopwords
+from nltk import FreqDist
+import pandas as pd
+
+bows = open(os.path.abspath('bow_partidos.csv'))
+dfcsv = csv.DictReader(bows)
+partidos = dfcsv.fieldnames
+bows.close()
+
+tradutor = str.maketrans({key: None for key in string.punctuation})
+
+stop_words = stopwords.words('portuguese')
+stop_words_custom = []
+stop_words.extend(stop_words_custom)
+
+df = pd.DataFrame(index=partidos, columns=['educação', 'saúde', 'segurança'])
+for partido in partidos:
+    texto = pd.DataFrame.to_string(pd.read_csv('bow_partidos.csv',
+                                               dtype=str,
+                                               usecols=[partido],
+                                               keep_default_na=False),
+                                    index=False,
+                                    header=False)
+    
+    bow = texto.translate(tradutor).lower().split()
+    clean = [word for word in bow if word not in stop_words and len(word) > 1]
+    total = len(clean)
+    fd = FreqDist(clean)
+    porcento = fd['educação'] / float(total)
+    pormilhao = porcento * 10000
+    df.at[partido, 'educação'] = pormilhao
+    porcento2 = fd['saúde'] / float(total)
+    pormilhao2 = porcento2 * 10000
+    df.at[partido, 'saúde'] = pormilhao2
+    porcento3 = fd['segurança'] / float(total)
+    pormilhao3 = porcento3 * 10000
+    df.at[partido, 'segurança'] = pormilhao3
+
+df
