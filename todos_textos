@@ -11,12 +11,14 @@ import os
 import csv
 import unidecode
 
+# abre a lista de urls para acessar e a lista de senadores para organizar
 arquivo_urls = open(os.path.abspath('lista_urls.csv'))
 urls = csv.DictReader(arquivo_urls)
 
 arquivo_info = open(os.path.abspath('lista_senadores.csv'))
 info = csv.DictReader(arquivo_info)
 
+# a partir da lista de informações dos senadores, separa dicionários para organizar
 nomeuf = {}
 nomecod = {}
 nomealto = {}
@@ -37,11 +39,12 @@ for row in info:
     partidos[baixa] = prepart
     nomealto[baixa] = prenome
     
+# prepara os links dos pronunciamentos
 links = [row[codigo] for row in urls for codigo in codigos if row[codigo]]
 
+# abre um grande dicionário para popular com todos os pronunciamentos e suas devidas classificações
 grandict = {}
 nr = 0
-
 for link in links:     
 
     resp = rq.get(link)
@@ -67,7 +70,9 @@ for link in links:
     
     esse = links.index(link)
     total = len(links)
-    print('Abrindo pronuciamento %s de %s' % (esse, total) +'. Autor: '+autor+'. Data: '+data)
+    
+# para acompanhar o progresso da execução dessa parte, você pode abrir a linha abaixo
+#    print('Abrindo pronuciamento %s de %s' % (esse, total) +'. Autor: '+autor+'. Data: '+data)
     
     for t in texto:
         paras = t.find_all('p')
@@ -182,6 +187,7 @@ for link in links:
     
                         continue
                         
+# depois de colocar tudo num dicionário, converte ele para um dataframe e depois salva em csv
 grandf = pd.DataFrame.from_dict(grandict, orient='index')
 grandf.columns = ['Link', 'Tipo', 'Casa', 'Data', 'Autor', 'AutorCompleto', 'AutorSimples', 'CodAutor', 'Partido', 'UF', 'Texto', 'Aparte']
 grandf.to_csv('todos_textos.csv', encoding='utf-8', index=False)
