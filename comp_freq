@@ -3,6 +3,9 @@ comparativo de frequências relativas
 
 usando os bows por partido, faz uma análise simples de frequência relativa da presença
 de determinados termos nos pronunciamentos dos senadores e senadoras.
+
+nesse exemplo, analisa-se educação, saúde e segurança.
+para analisar outros termos, é preciso trocar cada instância desses termos pelo termo desejado.
 """
 
 import os
@@ -13,17 +16,20 @@ from nltk.corpus import stopwords
 from nltk import FreqDist
 import pandas as pd
 
+# abre o arquivo de bows por partido
 bows = open(os.path.abspath('bow_partidos.csv'))
 dfcsv = csv.DictReader(bows)
 partidos = dfcsv.fieldnames
 bows.close()
 
+# prepara filtros de texto
 tradutor = str.maketrans({key: None for key in string.punctuation})
 
 stop_words = stopwords.words('portuguese')
 stop_words_custom = []
 stop_words.extend(stop_words_custom)
 
+# cria um dataframe para popular com os dados comparativos
 df = pd.DataFrame(index=partidos, columns=['educação', 'saúde', 'segurança'])
 for partido in partidos:
     texto = pd.DataFrame.to_string(pd.read_csv('bow_partidos.csv',
@@ -32,7 +38,8 @@ for partido in partidos:
                                                keep_default_na=False),
                                     index=False,
                                     header=False)
-    
+                                    
+# para cada partido, conta todas as palavras e a frequência dos termos especificados 
     bow = texto.translate(tradutor).lower().split()
     clean = [word for word in bow if word not in stop_words and len(word) > 1]
     total = len(clean)
@@ -47,4 +54,5 @@ for partido in partidos:
     pormilhao3 = porcento3 * 10000
     df.at[partido, 'segurança'] = pormilhao3
 
-df
+# imprime o dataframe
+print(df)
