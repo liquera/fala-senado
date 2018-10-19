@@ -1,0 +1,38 @@
+import requests as rq
+from lxml import etree
+import os
+import csv
+
+# pega e salva num xml (150kb) a lista de senadores e senadoras com diversas outras infos
+url = 'http://legis.senado.leg.br/dadosabertos/senador/lista/atual'
+resp = rq.get(url)
+with open('atual.xml', 'w') as f:
+    f.write(resp.text)
+f.close()
+
+# abre um csv e prepara o cabeçalho
+with open(os.path.abspath('lista_senadores.csv'), 'w', newline='') as csvfile:
+    titulos = ['Nome completo', 'Nome', 'Sexo', 'Foto', 'E-mail', 'Partido', 'UF', 'Codigo']
+    arquivo = csv.DictWriter(csvfile, fieldnames=titulos)
+    arquivo.writeheader()
+    
+# abre o xml criado antes e coloca os dados filtrados no csv (13kb)
+    for _, element in etree.iterparse('atual.xml', tag='IdentificacaoParlamentar'):
+        nome = element.findtext('NomeCompletoParlamentar')
+        apelido = element.findtext('NomeParlamentar')
+        sexo = element.findtext('SexoParlamentar')
+        foto = element.findtext('UrlFotoParlamentar')
+        email = element.findtext('EmailParlamentar')
+        partido = element.findtext('SiglaPartidoParlamentar')
+        uf = element.findtext('UfParlamentar')
+        codigo = element.findtext('CodigoParlamentar')
+        arquivo.writerow({'Nome completo': nome,
+                            'Nome': apelido,
+                            'Sexo': sexo,
+                            'Foto': foto,
+                            'E-mail': email,
+                            'Partido': partido,
+                            'UF': uf,
+                            'Codigo': codigo})
+        element.clear()
+csvfile.close()        
