@@ -1,3 +1,10 @@
+"""
+lista de senadores
+
+busca informações básicas de cada senador e senadora no site do senado
+e salva em um csv ('Nome completo', 'Nome', 'Sexo', 'Foto', 'E-mail', 'Partido', 'UF', 'Codigo').
+"""
+
 import requests as rq
 from lxml import etree
 import os
