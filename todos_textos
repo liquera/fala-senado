@@ -1,0 +1,181 @@
+from bs4 import BeautifulSoup as bs
+import requests as rq
+import pandas as pd
+import os
+import csv
+import unidecode
+
+arquivo_urls = open(os.path.abspath('lista_urls.csv'))
+urls = csv.DictReader(arquivo_urls)
+
+arquivo_info = open(os.path.abspath('lista_senadores.csv'))
+info = csv.DictReader(arquivo_info)
+
+nomeuf = {}
+nomecod = {}
+nomealto = {}
+nomecomp = {}
+partidos = {}
+codigos = []
+for row in info:
+    codigos.append(row['Codigo'])
+    prenome = str(row['Nome'])
+    limpo = unidecode.unidecode(prenome)
+    baixa = limpo.lower()
+    nomecod[baixa] = row['Codigo']
+    precomp = str(row['Nome completo'])
+    nomecomp[baixa] = precomp
+    prepart = str(row['Partido'])
+    preuf = str(row['UF'])
+    nomeuf[baixa] = preuf
+    partidos[baixa] = prepart
+    nomealto[baixa] = prenome
+    
+links = [row[codigo] for row in urls for codigo in codigos if row[codigo]]
+
+grandict = {}
+nr = 0
+
+for link in links:     
+
+    resp = rq.get(link)
+    soup = bs(resp.content, 'html.parser')
+    texto = soup.find_all('div', class_='texto-integral')
+    meta = soup.find('dl', class_='dl-horizontal')
+    span = meta.find('span')
+    pren = str(span)
+    autor = pren[6:-7].lower()
+    autor = unidecode.unidecode(autor)
+    dt = meta.find('dt', text='Data')
+    dt1 = dt.find_next_sibling()
+    pred = str(dt1)
+    data = pred[4:-5]
+    cs = meta.find('dt', text='Casa')
+    cs1 = cs.find_next_sibling()
+    prec = str(cs1)
+    casa = prec[4:-6]
+    tp = meta.find('dt', text='Tipo')
+    tp1 = tp.find_next_sibling()
+    pret = str(tp1)
+    tipo = pret[4:-6]
+    
+    esse = links.index(link)
+    total = len(links)
+    print('Abrindo pronuciamento %s de %s' % (esse, total) +'. Autor: '+autor+'. Data: '+data)
+    
+    for t in texto:
+        paras = t.find_all('p')
+        for para in paras:
+            if para.find_parent('table'):
+                del para
+            else:
+                bold = para.find('b')
+                if bold:
+                    bold.get_text(strip=True)
+                    prenome = str(bold)
+                    nome = prenome[9:-4].lower()
+                    nome = unidecode.unidecode(nome)
+                    if nome:
+                        if nome not in nomecod:
+                            del para
+                        else:
+                            if nome in nomecod:
+                                if nome != autor:
+                                    aparte = para.get_text(strip=True)
+                                    pos = aparte.find(') - ')
+                                    pos = pos+4
+                                    aparte = aparte[pos:]
+                                    cod = nomecod[nome]
+                                    cxalta = nomealto[nome]
+                                    completo = nomecomp[nome]
+                                    codi = nomecod[nome]
+                                    part = partidos[nome]
+                                    uf = nomeuf[nome]
+                                    
+                                    grandict[nr] = []
+                                    grandict[nr].append(link)
+                                    grandict[nr].append(tipo)
+                                    grandict[nr].append(casa)
+                                    grandict[nr].append(data)
+                                    grandict[nr].append(cxalta)
+                                    grandict[nr].append(completo)
+                                    grandict[nr].append(nome)
+                                    grandict[nr].append(codi)
+                                    grandict[nr].append(part)
+                                    grandict[nr].append(uf)
+                                    grandict[nr].append(aparte)
+                                    grandict[nr].append('S')
+                                    
+                                    nr += 1
+                                    
+                                elif nome == autor:
+                                    trecho = para.get_text(strip=True)
+                                    pos = trecho.find(') - ')
+                                    pos = pos+4
+                                    trecho = trecho[pos:]
+                                    cod = nomecod[nome]
+                                    cxalta = nomealto[nome]
+                                    completo = nomecomp[nome]
+                                    codi = nomecod[nome]
+                                    part = partidos[nome]
+                                    uf = nomeuf[nome]
+                                    
+                                    grandict[nr] = []
+                                    grandict[nr].append(link)
+                                    grandict[nr].append(tipo)
+                                    grandict[nr].append(casa)
+                                    grandict[nr].append(data)
+                                    grandict[nr].append(cxalta)
+                                    grandict[nr].append(completo)
+                                    grandict[nr].append(nome)
+                                    grandict[nr].append(codi)
+                                    grandict[nr].append(part)
+                                    grandict[nr].append(uf)
+                                    grandict[nr].append(trecho)
+                                    grandict[nr].append('N')
+                                    
+                                    nr += 1
+                                    
+                                else:
+                                    continue
+    
+                            else:
+                                continue
+                    else:
+                        continue
+                else:
+                    trecho = para.get_text(strip=True)
+                    if trecho.startswith('('):
+                        del trecho
+                    elif trecho.startswith('Modelo'):
+                        del trecho
+                    else:
+                        cod = nomecod[autor]
+                        nome = autor
+                        cxalta = nomealto[nome]
+                        completo = nomecomp[nome]
+                        codi = nomecod[nome]
+                        part = partidos[nome]
+                        uf = nomeuf[nome]
+                        
+                        grandict[nr] = []
+                        grandict[nr].append(link)
+                        grandict[nr].append(tipo)
+                        grandict[nr].append(casa)
+                        grandict[nr].append(data)
+                        grandict[nr].append(cxalta)
+                        grandict[nr].append(completo)
+                        grandict[nr].append(nome)
+                        grandict[nr].append(codi)
+                        grandict[nr].append(part)
+                        grandict[nr].append(uf)
+                        grandict[nr].append(trecho)
+                        grandict[nr].append('N')
+                        
+                        nr += 1
+    
+                        continue
+                        
+grandf = pd.DataFrame.from_dict(grandict, orient='index')
+grandf.columns = ['Link', 'Tipo', 'Casa', 'Data', 'Autor', 'AutorCompleto', 'AutorSimples', 'CodAutor', 'Partido', 'UF', 'Texto', 'Aparte']
+grandf.to_csv('todos_textos.csv', encoding='utf-8', index=False)
