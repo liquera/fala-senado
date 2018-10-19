@@ -15,16 +15,18 @@ import pandas as pd
 from nltk.stem.snowball import PortugueseStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+# ajeita configurações de exibição dos dataframes
 pd.set_option('display.max_row', 1000)
 pd.set_option('display.max_columns', 50)
 
+# abre um dataframe a partir do csv grande e descarta colunas não usadas
 df = pd.DataFrame(pd.read_csv('todos_textos.csv',
                                dtype=str,
                                keep_default_na=False)
                   )
-
 df = df.drop(df.columns[[0, 1, 2, 4, 5, 6, 7, 9, 11]], axis=1)
 
+# prepara filtros de texto
 tradutor = str.maketrans({key: None for key in string.punctuation})
 
 stop_words = stopwords.words('portuguese')
@@ -33,15 +35,19 @@ stop_words_custom = ['sr', 'srª', 'srªs', 'srs', 'senador', 'senadora',
                      'exº', 'exª', 'br', 'brs', 'aqui', 'brasil']
 stop_words.extend(stop_words_custom)
 
+# separa um partido específico para se fazer a análise, no exemplo, PT
 df = df.loc[df['Partido'] == 'PT']
 df = df.drop('Partido', 1)
 df = df.groupby(['Data'])['Texto'].apply(' '.join).reset_index()
 
+# converte as datas em timestamps
 df['Data'] = pd.to_datetime(df['Data'], format='%d/%m/%Y')
 df = df.sort_values(by=['Data'])
 
-st = PortugueseStemmer()
+# se quiser agrupar as palavras por raiz, tem que abrir a linha abaixo
+#st = PortugueseStemmer()
 
+# prepara um dicionário com as datas como chaves e os textos como valores
 grandic = {}
 datas = []
 for data in df['Data']:
@@ -50,6 +56,8 @@ for data in df['Data']:
     bow = texto.translate(tradutor).lower().split()
     clean = [word.replace('“', '').replace('”', '') for word in bow
              if word not in stop_words and len(word) > 1]
+
+# se quiser agrupar as palavras por raiz, tem que abrir as duas linhas abaixo e fechar a terceira
 #    stemmed = [st.stem(w) for w in clean]
 #    grandic[data] = ' '.join(stemmed)
     grandic[data] = ' '.join(clean)
@@ -57,6 +65,7 @@ for data in df['Data']:
     
 corpus = grandic.values()
 
+# começa a preparar para a vetorização com tf-idf
 vocab = set()
 for doc in corpus:
     vocab.update(doc.split())
@@ -71,6 +80,7 @@ tfidf.transform(corpus)
 
 tabela = {}
 
+# aplica o tf-idf por documento do corpus
 for doc in corpus:
     pontos = {}
     X = tfidf.transform([doc])
@@ -80,5 +90,6 @@ for doc in corpus:
     k = list(grandic.keys())[list(grandic.values()).index(doc)]
     tabela[k] = ordenado
 
+# imprime os 10 termos mais importantes por data para o partido escolhido
 for data in datas:
     print(str(data.date())+': '+str(tabela[data][:10]))
