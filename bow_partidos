@@ -1,8 +1,14 @@
+"""
+bag of words por partido
+
+usando o csv criado anteriormente com todos os pronunciamentos,
+filtra os textos e separa por partido para análise com bag of words (bow)
+"""
+
 import os
 import csv
 import pandas as pd
 
-# filtra os textos e separa por partido para análise com bag of words (bow)
 db = open(os.path.abspath('todos_textos.csv'))
 df = csv.DictReader(db)
 
