@@ -1,3 +1,9 @@
+"""
+lista de urls
+
+busca as urls de cada pronunciamento pra cada senador e salva num csv
+"""
+
 import csv
 import os
 from lxml import etree
