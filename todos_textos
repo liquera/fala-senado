@@ -1,3 +1,9 @@
+"""
+todos os textos
+
+abre todas as URLs e salva os textos dos pronunciamentos dos senadores em um csv organizado (400MB+)
+"""
+
 from bs4 import BeautifulSoup as bs
 import requests as rq
 import pandas as pd
