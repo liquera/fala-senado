@@ -32,17 +32,18 @@ Os primeiros scripts vão buscar os objetos de análise na internet, são eles:
  - bow_partidos: a partir do csv maior, organiza um csv menor com os textos por partido para análise com bag of words (bow). 250MB+
 
 Depois de salvar a base de dados, as análises podem ser feitas em qualquer ordem:
- - comp_freq: a partir dos bows dos partidos, compara a frequência relativa de termos nos pronunciamentos. Exemplo: educação, saúde, segurança/todos partidos
-![exemplo comp_freq: educação, saúde, seguranã/todos](https://github.com/liquera/fala-senado/blob/master/comp_freq.png)
+ - comp_freq: a partir dos bows dos partidos, compara a frequência relativa de termos nos pronunciamentos. 
+ Exemplo: educação, saúde, segurança/todos partidos
+![exemplo comp_freq](https://github.com/liquera/fala-senado/blob/master/comp_freq.png)
 
  
  - graf_termo: a partir do csv geral, faz um gráfico comparativo que mostra a evolução da frequência de determinado termo pelo tempo por partidos.
  Exemplo: educação/PT, MDB, PSDB
-![exemplo comp_graf_termo: educação/PT, MDB, PSDB](https://github.com/liquera/fala-senado/blob/master/graf_termos.png)
+![exemplo graf_termo](https://github.com/liquera/fala-senado/blob/master/graf_termos.png)
 
  - tfidf: a partir do csv geral, vetoriza os termos de um partido por data e pontua com TF-IDF, revelando os termos mais importantes por data do partido escolhido.
  Exemplo: PT
-![exemplo tfdif: PT](https://github.com/liquera/fala-senado/blob/master/tfidf.png)
+![exemplo tfdif](https://github.com/liquera/fala-senado/blob/master/tfidf.png)
  
 ### Notas
 
