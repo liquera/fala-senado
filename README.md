@@ -32,7 +32,7 @@ Os primeiros scripts vão buscar os objetos de análise na internet, são eles:
  - bow_partidos: a partir do csv maior, organiza um csv menor com os textos por partido para análise com bag of words (bow). 250MB+
 
 Depois de salvar a base de dados, as análises podem ser feitas em qualquer ordem:
- - comp_freq: a partir dos bows dos partidos, compara a frequência relativa de termos nos pronunciamentos. Exemplo: educação, saúde, segurança/todos partidos
+ - comp_freq: a partir dos bows dos partidos, compara a frequência relativa de termos nos pronunciamentos. Exemplo: educação, saúde, segurança/todos
 ![exemplo comp_freq: educação, saúde, seguranã/todos](https://github.com/liquera/fala-senado/blob/master/comp_freq.png)
  
  - graf_termo: a partir do csv geral, faz um gráfico comparativo que mostra a evolução da frequência de determinado termo pelo tempo por partidos.
