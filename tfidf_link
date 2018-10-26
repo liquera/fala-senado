@@ -1,0 +1,74 @@
+"""
+aplica o tfidf por link, ou seja, por pronunciamento (o anterior era por data).
+salva tudo num csv (500MB+)
+"""
+
+from tqdm import tqdm
+import operator
+import string
+from nltk.corpus import stopwords
+import pandas as pd
+from nltk.stem.snowball import PortugueseStemmer
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+pd.set_option('display.max_row', 1000)
+pd.set_option('display.max_columns', 50)
+
+df = pd.DataFrame(pd.read_csv('todos_textos.csv',
+                               dtype=str,
+                               usecols=[0, 10]
+                               keep_default_na=False)
+                  )
+
+tradutor = str.maketrans({key: None for key in string.punctuation})
+
+stop_words = stopwords.words('portuguese')
+stop_words_custom = ['sr', 'srª', 'srªs', 'srs', 'senador', 'senadora',
+                     'presidente', 'presidenta', 'senadores', 'senadoras',
+                     'exº', 'exª', 'br', 'brs', 'aqui', 'brasil', 'matéria',
+                     'governo', 'país']
+stop_words.extend(stop_words_custom)
+
+df = df.groupby(['Link'])['Texto'].apply(' '.join).reset_index()
+
+#st = PortugueseStemmer()
+
+grandic = {}
+links = []
+
+for index, values in tqdm(df.iterrows()):
+    bow = values['Texto'].translate(tradutor).lower().split()
+    clean = [word.replace('“', '').replace('”', '') for word in bow
+             if word not in stop_words and len(word) > 1]
+#    stemmed = [st.stem(w) for w in clean]
+#    grandic[link] = ' '.join(stemmed)
+    grandic[values['Link']] = ' '.join(clean)
+    links.append(values['Link'])
+    
+corpus = grandic.values()
+
+vocab = set()
+for doc in corpus:
+    vocab.update(doc.split())
+
+vocab = list(vocab)
+index = {w: idx for idx, w in enumerate(vocab)}
+
+tfidf = TfidfVectorizer(vocabulary=vocab)
+
+tfidf.fit(corpus)
+tfidf.transform(corpus)
+
+tabela = {}
+
+for doc in tqdm(corpus):
+    pontos = {}
+    X = tfidf.transform([doc])
+    for w in doc.split():
+        pontos[w] = X[0, tfidf.vocabulary_[w]]
+    ordenado = sorted(pontos.items(), key=operator.itemgetter(1), reverse=True)
+    k = list(grandic.keys())[list(grandic.values()).index(doc)]
+    tabela[k] = ordenado
+
+csv = pd.DataFrame(dict([ (k, pd.Series(v)) for k,v in tabela.items() ]))
+csv.to_csv('tfidf_link.csv', encoding='utf-8', index=False)
