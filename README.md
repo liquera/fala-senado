@@ -47,8 +47,8 @@ Depois de salvar a base de dados, as análises podem ser feitas em qualquer orde
 
  - tfidf_link: a partir do csv geral, vetoriza os termos de cada pronunciamento e pontua com TF-IDF, revelando os termos mais importantes por pronunciamento no senado. salva em csv.
  
- - assuntos: a partir do csv geral e do csv gerado com o tfidf_link, cria um gráfico que mostra os 3 temas mais importantes*  tratados pelo senado por semestre. a altura de cada barra determina o a força daquele assunto no semestre.
- * importância de acordo com a frequência do termo em relação a sua frequência invertida no corpus (tf-idf)
+ - assuntos: a partir do csv geral e do csv gerado com o tfidf_link, cria um gráfico que mostra os 3 temas mais importantes(1)  tratados pelo senado por semestre. a altura de cada barra determina o a força daquele assunto no semestre.
+ (1)importância de acordo com a frequência do termo em relação a sua frequência invertida no corpus (tf-idf)
  Exemplo: todos os partidos, por semestre
 ![exemplo assuntos](https://github.com/liquera/fala-senado/blob/master/barras.png)
  
