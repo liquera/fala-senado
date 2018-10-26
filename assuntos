@@ -1,0 +1,141 @@
+"""
+prepara um gráfico com os 3 principais assuntos falados no senado por semestre.
+"""
+
+import pandas as pd
+from nltk import FreqDist
+import matplotlib.pyplot as plt
+from matplotlib.dates import date2num
+from matplotlib.font_manager import FontProperties
+import matplotlib.dates as mdates
+
+pd.set_option('display.max_row', 1000)
+pd.set_option('display.max_columns', 50)
+
+tudo = pd.DataFrame(pd.read_csv('todos_textos.csv',
+                               dtype=str,
+                               usecols=[0, 3],
+                               keep_default_na=False)
+                   )
+
+tudo = tudo.groupby(['Link', 'Data']).size().reset_index()
+tudo = tudo.drop(tudo.columns[2], axis=1)
+
+tfidf = pd.DataFrame(pd.read_csv('tfidf_link.csv',
+                                nrows=10,
+                                keep_default_na=False)
+                    )
+
+dic = {}
+bow = []
+for col in list(tfidf.columns.values):
+    pontos = tfidf[col].values
+    termos = []
+    for item in pontos:
+        item = item.replace("'", "").replace('(', '').replace(')', '')
+        item = item.replace(',', '').split()
+        if len(item) > 0:
+            termos.append(item[0])
+        else:
+            continue
+    dic[col] = termos
+    for termo in termos:
+        bow.append(termo)
+
+dftemp = pd.DataFrame.from_dict(dic, orient='index')
+
+dftemp['Link'] = dftemp.index
+dftemp = dftemp.reset_index() 
+
+dftemp['Termos'] = dftemp[0].fillna('') + ',' + dftemp[1].fillna('') \
+                    + ',' + dftemp[2].fillna('') + ',' + dftemp[3].fillna('') \
+                    + ',' + dftemp[4].fillna('') + ',' + dftemp[5].fillna('') \
+                    + ',' + dftemp[6].fillna('') + ',' + dftemp[7].fillna('') \
+                    + ',' + dftemp[8].fillna('') + ',' + dftemp[9].fillna('')
+                    
+dftemp['Termos'] = dftemp['Termos'].str.strip(',')
+
+dffinal = dftemp.merge(tudo, on='Link')
+dffinal = dffinal.drop(dffinal.columns[[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]], axis=1)
+
+dffinal['Data'] = pd.to_datetime(dffinal['Data'], format='%d/%m/%Y')
+dffinal = dffinal.sort_values(by=['Data']).reset_index()
+dffinal = dffinal[['Data', 'Link', 'Termos']]
+dffinal = dffinal.set_index('Data')
+
+df6m = dffinal.resample('6M', convention='start').agg({'Termos': ','.join})
+
+def frequencia(row):
+    t = row['Termos']
+    t = t.split(',')
+    fd = FreqDist(t)
+    tres = fd.most_common(3)
+    return tres
+
+dates = []
+freqdic = {}
+for i, v in df6m.iterrows():
+    freq = frequencia(v)
+    freqdic[i.date().strftime("%d/%m/%Y")] = freq
+    dates.append(i.date())
+
+datafreq = {}
+datatermo = {}
+termofreq = {}
+for k, v in freqdic.items():
+    o = []
+    p = []
+    for t in v:
+        o.append(t[1])
+        p.append(t[0])
+        termofreq[t[0]] = t[1]
+    datafreq[k] = o
+    datatermo[k] = p
+    
+    
+dfgraf = pd.DataFrame.from_dict(datafreq)
+dflege = pd.DataFrame.from_dict(datatermo)
+
+x = date2num(dates)
+r = dfgraf.iloc[0].values
+g = dfgraf.iloc[1].values
+b = dfgraf.iloc[2].values
+rleg = dflege.iloc[0].values
+gleg = dflege.iloc[1].values
+bleg = dflege.iloc[2].values
+
+dates2 = dates[1::2]
+
+fig, ax = plt.subplots(figsize=(45, 40))
+w = 50
+rects1 = ax.bar(x-w, r, width=w, color='r', align='center')
+rects2 = ax.bar(x, g, width=w, color='g', align='center')
+rects3 = ax.bar(x+w, b, width=w, color='b', align='center')
+ax.xaxis_date()
+ax.autoscale(tight=True)
+xfmt = mdates.DateFormatter('%Y')
+ax.xaxis.set_major_formatter(xfmt)
+ax.set_xticks(dates2)
+plt.xticks(rotation=35)
+
+def autolabel(rects, heights, labels):
+    for i, rect in enumerate(rects):
+        x = rect.get_x()
+        wid = rect.get_width()
+        height = heights.values[i]
+        label = labels.values[i]
+
+        ax.text(x + wid/2., height+0.5,
+                label, fontproperties=font,
+                ha='center', va='bottom', rotation=90)
+
+font = FontProperties()
+font.set_size('x-large')
+
+autolabel(rects1, dfgraf.iloc[0], dflege.iloc[0])
+autolabel(rects2, dfgraf.iloc[1], dflege.iloc[1])
+autolabel(rects3, dfgraf.iloc[2], dflege.iloc[2])
+
+plt.ylim(0, 200)
+
+plt.show()
