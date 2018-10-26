@@ -16,7 +16,7 @@ pd.set_option('display.max_columns', 50)
 
 df = pd.DataFrame(pd.read_csv('todos_textos.csv',
                                dtype=str,
-                               usecols=[0, 10]
+                               usecols=[0, 10],
                                keep_default_na=False)
                   )
 
